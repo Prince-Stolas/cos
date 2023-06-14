@@ -1,0 +1,2 @@
+org 0x2000
+times 0x2200-($-$$) db 0x00 ;;storage mit 0x00 füllen
