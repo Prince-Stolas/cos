@@ -228,7 +228,7 @@ run_cmd: ;; si=cmd
     ;si=cmd di=arg bl=arg_num
     mov si, cmd
     mov di, arg
-    mov bl, 0x01
+    mov bl, 0x03
     call get_argument
     mov si, arg
     ;mov si, invalid_cmd_msg
@@ -330,23 +330,19 @@ get_argument: ;; si=cmd di=arg_buffer bl=arg_num
     mov es, ax
 .loop:
     lodsb
+    cmp al, 0x00
+    je .done
     cmp al, 0x20
-    jne .loop ;was .l1
+    jne .loop
     inc ah
-;.l1:
     cmp ah, bl
     je .return_arg
     jmp .loop
 .return_arg:
-    mov ax, si;ds
     mov di, arg
-    ;add di, ax
 .loop1:
-    stosb
-    ;mov ax, si;ds
-    ;inc ax
-    ;mov si, ax;ds, ax
     lodsb
+    stosb
     cmp al, 0x20
     je .done
     cmp al, 0x00
@@ -355,7 +351,7 @@ get_argument: ;; si=cmd di=arg_buffer bl=arg_num
 .done:
     ret
 
-start_msg: db "COS - Version 0.07", 0x0a, 0x00
+start_msg: db "COS - Version 0.09", 0x0a, 0x00
 start_msg_space: db "kb for files reserved!", 0x0a, 0x00
 invalid_cmd_msg:
     db "Invalid command!", 0x0a
