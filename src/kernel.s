@@ -383,8 +383,3 @@ cmd_concat: db "concat", 0x00
 cmd_love: db "love", 0x00
 
 times 0x1000-($-$$) db 0x00 ;;kernel rest mit 0x00 füllen
-
-;section storage start=0x2000
-;storage:
-;    db 0x05
-;    times 0x2200-($-$$) db 0x00 ;;storage mit 0x00 füllen
