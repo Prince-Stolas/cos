@@ -1,8 +1,5 @@
 org 0x1000
 
-;; TODO
-;; storage abrufen geht noch nicht
-
 storage_space equ 0x08 ;; 8kb
 storage_addr equ 0x2000
 
@@ -206,9 +203,9 @@ run_cmd: ;; si=cmd
     call string_equ
     je .cmd_concat
 
-    mov di, cmd_jason
+    mov di, cmd_love
     call string_equ
-    je .cmd_jason
+    je .cmd_love
 
     jmp .invalid
 .cmd_help:
@@ -223,8 +220,8 @@ run_cmd: ;; si=cmd
     mov si, unimplemented_cmd_msg
     call print_str
     jmp .done
-.cmd_jason:
-    mov si, jason_msg
+.cmd_love:
+    mov si, love_msg
     call print_str
     jmp .done
 .invalid:
@@ -327,27 +324,28 @@ print_dec_int: ;; ax=int
     pop ax
     ret
 
-get_argument: ;; si=cmd di=arg bl=arg_num
+get_argument: ;; si=cmd di=arg_buffer bl=arg_num
     xor ax, ax
     mov ds, ax
     mov es, ax
 .loop:
     lodsb
     cmp al, 0x20
-    jne .l1
+    jne .loop ;was .l1
     inc ah
-.l1:
+;.l1:
     cmp ah, bl
     je .return_arg
     jmp .loop
 .return_arg:
-    mov ax, ds
-    add di, ax
+    mov ax, si;ds
+    mov di, arg
+    ;add di, ax
 .loop1:
     stosb
-    mov ax, ds
-    inc ax
-    mov ds, ax
+    ;mov ax, si;ds
+    ;inc ax
+    ;mov si, ax;ds, ax
     lodsb
     cmp al, 0x20
     je .done
@@ -357,7 +355,7 @@ get_argument: ;; si=cmd di=arg bl=arg_num
 .done:
     ret
 
-start_msg: db "COS - Version 0.06", 0x0a, 0x00
+start_msg: db "COS - Version 0.07", 0x0a, 0x00
 start_msg_space: db "kb for files reserved!", 0x0a, 0x00
 invalid_cmd_msg:
     db "Invalid command!", 0x0a
@@ -376,7 +374,7 @@ help_msg:
     db "    Options:", 0x0a
     db "      -r : Reset the concatonations of the file", 0x0a
     db 0x00
-jason_msg: db "<3", 0x0a, 0x00
+love_msg: db "<3", 0x0a, 0x00
 file_str: db "File-", 0x00
 kb_str: db "kb", 0x00
 
@@ -386,12 +384,7 @@ cmd: times 0x100 db 0x00
 cmd_fs: db "fs", 0x00
 cmd_help: db "help", 0x00
 cmd_concat: db "concat", 0x00
-cmd_jason: db "jason", 0x00
-
-asdasdasd: dw 0x0000
-
-storage2:
-    times 1024 db 0x00
+cmd_love: db "love", 0x00
 
 times 0x1000-($-$$) db 0x00 ;;kernel rest mit 0x00 füllen
 
