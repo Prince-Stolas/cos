@@ -87,7 +87,15 @@ move_cursor: ;; bl=direction
     dec dh
     jmp .done
 .down:
-    inc dh
+    cmp dh, 0x18
+    jne .inc_dh
+    push dx
+    mov ax, 0x0601
+    xor bx, bx
+    xor cx, cx
+    mov dx, 0x5019
+    int 0x10
+    pop dx
     jmp .done
 .left:
     dec dl
@@ -97,6 +105,8 @@ move_cursor: ;; bl=direction
     jmp .done
 .linefeed:
     xor dl, dl
+    jmp .down
+.inc_dh:
     inc dh
 .done:
     mov ah, 0x02
@@ -342,11 +352,11 @@ get_argument: ;; si=cmd di=arg_buffer bl=arg_num
     mov di, arg
 .loop1:
     lodsb
-    stosb
     cmp al, 0x20
     je .done
     cmp al, 0x00
     je .done
+    stosb
     jmp .loop1
 .done:
     ret
