@@ -249,9 +249,64 @@ run_cmd: ;; si=cmd
     pop si
     ret
 
-str_to_int:
-    ;; kein bock das zu machen
+str_to_int: ;; si=num_str cx=output (max 5 ziffern)
+    xor ax, ax
+    mov di, si
+    mov bx, 0x01
+    xor cx, cx
+    mov ds, ax
+    mov es, ax
+.loop:
+    lodsb
+    cmp al, 0x00
+    jne .loop
+    sub si, 0x02
+    std
+.loop1:
+    push cx
+    xor ax, ax
+    lodsb
+    sub al, 0x30
+    mul bx
+    pop cx
+    add cx, ax
+    mov ax, bx
+    mov bx, 0x0a
+    mul bx
+    mov bx, ax
+    cmp di, si
+    jle .loop1
 .done:
+    cld
+    ret
+
+check_int: ;; si=int_str
+    push si
+    xor ax, ax
+    mov ds, ax
+.loop:
+    lodsb
+    cmp al, 0x00
+    je .eos
+    sub al, 0x30
+    cmp al, 0x09
+    jg .non_int
+    cmp al, 0x00
+    jl .non_int
+    jmp .loop
+.eos:
+    mov ax, si
+    pop si
+    dec si
+    cmp ax, si
+    je .non_int
+    mov ax, 0x00
+    jmp .done
+.non_int:
+    pop si
+    mov ax, 0x01
+.done:
+    cmp ax, 0x00
     ret
 
 concat: ;; si=cmd di=arg_buffer
@@ -283,6 +338,12 @@ concat: ;; si=cmd di=arg_buffer
     call get_argument
     pop di
     mov si, di
+    call check_int
+    jne .enter_int
+    call str_to_int ;; cx=file
+    jmp .done
+.enter_int:
+    mov si, nan_msg
     call print_str
 .done:
     ret
@@ -420,14 +481,17 @@ help_msg:
     db "    Options:", 0x0a
     db "      -r : Reset the concatonations of the file", 0x0a
     db 0x00
+nan_msg: db "Please enter a number!", 0x0a, 0x00
 love_msg: db "<3", 0x0a, 0x00
 file_str: db "File-", 0x00
 kb_str: db "kb", 0x00
 minr_str: db "-r", 0x00
 
+ints: db "1234567890"
+
 arg: times 0x100 db 0x00
-    
 cmd: times 0x100 db 0x00
+
 cmd_fs: db "fs", 0x00
 cmd_help: db "help", 0x00
 cmd_concat: db "concat", 0x00
