@@ -201,6 +201,11 @@ string_equ: ;; si=str1 di=str2 : equals_flag=result
 
 run_cmd: ;; si=cmd
     push si
+    mov di, arg
+    mov bl, 0x00
+    call get_argument
+    mov si, arg
+
     mov di, cmd_help
     call string_equ
     je .cmd_help
@@ -227,24 +232,59 @@ run_cmd: ;; si=cmd
     call display_files
     jmp .done
 .cmd_concat:
-    mov si, unimplemented_cmd_msg
-    call print_str
+    ;mov si, unimplemented_cmd_msg
+    ;call print_str
+    mov si, cmd
+    mov di, arg
+    call concat
     jmp .done
 .cmd_love:
     mov si, love_msg
     call print_str
     jmp .done
 .invalid:
-    ;si=cmd di=arg bl=arg_num
-    mov si, cmd
-    mov di, arg
-    mov bl, 0x03
-    call get_argument
-    mov si, arg
-    ;mov si, invalid_cmd_msg
+    mov si, invalid_cmd_msg
     call print_str
 .done:
     pop si
+    ret
+
+str_to_int:
+    ;; kein bock das zu machen
+.done:
+    ret
+
+concat: ;; si=cmd di=arg_buffer
+    push si
+    mov si, di
+    mov bx, 0x100
+    call clear_str
+    mov di, si
+    pop si
+    push si
+    push di
+    mov bl, 0x01
+    call get_argument
+    pop di
+    mov si, minr_str
+    call string_equ
+    pop si
+    je .reset
+    jmp .done
+.reset:
+    push si
+    mov si, di
+    mov bx, 0x100
+    call clear_str
+    mov di, si
+    pop si
+    mov bl, 0x02
+    push di
+    call get_argument
+    pop di
+    mov si, di
+    call print_str
+.done:
     ret
 
 handle_cmds:
@@ -339,14 +379,14 @@ get_argument: ;; si=cmd di=arg_buffer bl=arg_num
     mov ds, ax
     mov es, ax
 .loop:
+    cmp ah, bl
+    je .return_arg
     lodsb
     cmp al, 0x00
     je .done
     cmp al, 0x20
     jne .loop
     inc ah
-    cmp ah, bl
-    je .return_arg
     jmp .loop
 .return_arg:
     mov di, arg
@@ -361,7 +401,7 @@ get_argument: ;; si=cmd di=arg_buffer bl=arg_num
 .done:
     ret
 
-start_msg: db "COS - Version 0.09", 0x0a, 0x00
+start_msg: db "COS - Version 0.10", 0x0a, 0x00
 start_msg_space: db "kb for files reserved!", 0x0a, 0x00
 invalid_cmd_msg:
     db "Invalid command!", 0x0a
@@ -383,6 +423,7 @@ help_msg:
 love_msg: db "<3", 0x0a, 0x00
 file_str: db "File-", 0x00
 kb_str: db "kb", 0x00
+minr_str: db "-r", 0x00
 
 arg: times 0x100 db 0x00
     
