@@ -93,7 +93,7 @@ move_cursor: ;; bl=direction
     mov ax, 0x0601
     xor bx, bx
     xor cx, cx
-    mov dx, 0x5019
+    mov dx, 0x1950
     int 0x10
     pop dx
     jmp .done
@@ -341,6 +341,15 @@ concat: ;; si=cmd di=arg_buffer
     call check_int
     jne .enter_int
     call str_to_int ;; cx=file
+    dec cx
+    xor bx, bx
+.l1:
+    mov ax, [storage_addr+bx]
+    cmp bx, cx
+    inc bx
+    jne .l1
+    dec bx
+    mov byte [storage_addr+bx], 0x00
     jmp .done
 .enter_int:
     mov si, nan_msg
